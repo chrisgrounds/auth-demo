@@ -10,6 +10,5 @@ export const initializeDbConnection = async () => {
 }
 
 export const getDbConnection = dbName => {
-    const db = client.db(dbName);
-    return db;
+    return client.db(dbName);
 }

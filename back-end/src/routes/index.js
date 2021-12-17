@@ -1,5 +1,109 @@
-import { testRoute } from './testRoute';
+import bcrypt from "bcrypt";
+import e from "express";
+import jwt from "jsonwebtoken";
+import { getDbConnection } from "../db";
+
+const testRoute = {
+    path: '/api/test',
+    method: 'get',
+    handler: (req, res) => {
+        res.status(200).send('It works!');
+    },
+};
+
+const loginRoute = {
+    path: '/api/login',
+    method: 'post',
+    handler: async (req, res) => {
+        const { email, password } = req.body;
+
+        const db = getDbConnection("react-auth-db");
+        const user = await db.collection("users").findOne({ email });
+
+        if (!user) {
+            res.sendStatus(401);
+        }
+
+        const { _id: id, isVerified, passwordHash, info } = user;
+
+        const passwordMatches = await bcrypt.compare(password, passwordHash);
+
+        if (passwordMatches) {
+            jwt.sign({
+                    id,
+                    isVerified,
+                    email,
+                    info
+                },
+                process.env.JWT_SECRET,
+                {
+                    expiresIn: "2d"
+                },
+                (err, token) => {
+                    if (err) {
+                        return res.status(500).json({ err });
+                    }
+                    return res.status(200).json({ token });
+                }
+            );
+        } else {
+            res.sendStatus(401);
+        }
+    },
+};
+
+const signUpRoute = {
+    path: '/api/signup',
+    method: 'post',
+    handler: async (req, res) => {
+        const { email, password } = req.body;
+
+        const db = getDbConnection("react-auth-db");
+        const user = await db.collection("users").findOne({ email });
+
+        if (user) {
+            res.sendStatus(409);
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        const startingInfo = {
+            hairColor: "",
+            favouriteFood: "",
+            bio: "",
+        };
+
+        const result = await db
+            .collection("users")
+            .insertOne({ 
+                email, 
+                passwordHash, 
+                startingInfo, 
+                isVerified: false 
+            });
+
+        jwt.sign({
+                id: result.insertedId,
+                email,
+                info: startingInfo,
+                isVerified: false
+            }, 
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "2d"
+            },
+            (err, token) => {
+                if (err) {
+                    return res.status(500).json({ error: err });
+                }
+                return res.status(200).json({ token });
+            }
+        );
+    },
+};
 
 export const routes = [
     testRoute,
+    signUpRoute,
+    loginRoute,
 ];

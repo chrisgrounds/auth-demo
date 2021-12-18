@@ -13,20 +13,20 @@ export const LogInPage = () => {
     }
 
     return (
-        <div class="content-container">
+        <div className="content-container">
             <h1>Login</h1>
             { error && <div className="fail">{error}</div>}
             <input
                 type="email"
                 placeholder="email"
                 value={email}
-                onChange={e => setEmail(e)}
+                onChange={e => setEmail(e.target.value)}
             />
             <input
                 type="password"
                 placeholder="password"
                 value={password}
-                onChange={e => setPassword(e)}
+                onChange={e => setPassword(e.target.value)}
             />
             <button onClick={handleLoginAttempt}>Login</button>
             <button onClick={e => history.push("/forgot-password")}>Forgot Password?</button>

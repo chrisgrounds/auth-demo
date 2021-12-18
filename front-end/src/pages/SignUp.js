@@ -32,19 +32,19 @@ export const SignUpPage = () => {
         type="email"
         placeholder="email"
         value={email}
-        onChange={e => setEmail(e)}
+        onChange={e => setEmail(e.target.value)}
       />
       <input
         type="password"
         placeholder="password"
         value={password}
-        onChange={e => setPassword(e)}
+        onChange={e => setPassword(e.target.value)}
       />
       <input
         type="password"
         placeholder="password"
         value={confirmPassword}
-        onChange={e => setConfirmPassword(e)}
+        onChange={e => setConfirmPassword(e.target.value)}
       />
       <button onClick={handleSignUpAttempt}>Sign Up</button>
       <button onClick={e => history.push("/login")}>Already have an account? Login</button>

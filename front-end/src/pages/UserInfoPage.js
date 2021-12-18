@@ -1,67 +1,95 @@
 import { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
+import { useToken } from "../auth/useToken";
+import { useUser } from "../auth/useUser";
+import axios from "axios";
 
 export const UserInfoPage = () => {
-    const history = useHistory();
+  const user = useUser();
+  const [token, setToken] = useToken();
 
-    const [favoriteFood, setFavoriteFood] = useState('');
-    const [hairColor, setHairColor] = useState('');
-    const [bio, setBio] = useState('');
+  console.log(user);
+  const { id, email, info } = user;
 
-    const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-    const [showErrorMessage, setShowErrorMessage] = useState(false);
+  const history = useHistory();
 
-    useEffect(() => {
-        if (showSuccessMessage || showErrorMessage) {
-            setTimeout(() => {
-                setShowSuccessMessage(false);
-                setShowErrorMessage(false);
-            }, 3000);
+  const [favouriteFood, setFavouriteFood] = useState(info?.favouriteFood || "");
+  const [hairColor, setHairColor] = useState(info?.hairColor || "");
+  const [bio, setBio] = useState(info?.bio || "");
+
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showErrorMessage, setShowErrorMessage] = useState(false);
+
+  useEffect(() => {
+    if (showSuccessMessage || showErrorMessage) {
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+        setShowErrorMessage(false);
+      }, 3000);
+    }
+  }, [showSuccessMessage, showErrorMessage]);
+
+  const saveChanges = async () => {
+    try {
+      const response = await axios.put(`api/users/${id}`, {
+        favouriteFood,
+        hairColor,
+        bio,
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
-    }, [showSuccessMessage, showErrorMessage]);
+      });
 
-    const saveChanges = async () => {
-        alert('Save functionality not implemented yet');
+      const { token: newToken } = response.data;
+      setToken(newToken);
+      setShowSuccessMessage(true);
+    } catch (error) { 
+      setShowErrorMessage(true);
     }
+  }
 
-    const logOut = () => {
-        alert('Log out functionality not implemented yet');
-    }
-    
-    const resetValues = () => {
-        alert('Reset functionality not implemented yet');
-    }
-    
-    return (
-        <div className="content-container">
-            <h1>Info for</h1>
-            { showSuccessMessage && <div className="success">Successfully saved user data!</div> }
-            { showErrorMessage && <div className="fail">Uh oh... something went wrong and we couldn't save changes</div> }
-            <label>
-                Favorite Food:
-                <input
-                    onChange={e => setFavoriteFood(e.target.value)}
-                    value={favoriteFood}
-                />
-            </label>
-            <label>
-                Hair Color:
-                <input
-                    onChange={e => setHairColor(e.target.value)}
-                    value={hairColor}
-                />
-            </label>
-            <label>
-                Bio:
-                <input
-                    onChange={e => setBio(e.target.value)}
-                    value={bio}
-                />
-            </label>
-            <hr />
-            <button onClick={saveChanges}>Save Changes</button>
-            <button onClick={resetValues}>Reset Values</button>
-            <button onClick={logOut}>Log Out</button>
-        </div>
-    );
+  const logOut = () => {
+    localStorage.removeItem("token");
+    history.push("/login");
+  }
+
+  const resetValues = () => {
+    setFavouriteFood(info.favouriteFood);
+    setHairColor(info.hairColor);
+    setBio(info.bio);
+  }
+
+  return (
+    <div className="content-container">
+      <h1>Info for {email}</h1>
+      {showSuccessMessage && <div className="success">Successfully saved user data!</div>}
+      {showErrorMessage && <div className="fail">Uh oh... something went wrong and we couldn't save changes</div>}
+      <label>
+        Favourite Food:
+        <input
+          onChange={e => setFavouriteFood(e.target.value)}
+          value={favouriteFood}
+        />
+      </label>
+      <label>
+        Hair Color:
+        <input
+          onChange={e => setHairColor(e.target.value)}
+          value={hairColor}
+        />
+      </label>
+      <label>
+        Bio:
+        <input
+          onChange={e => setBio(e.target.value)}
+          value={bio}
+        />
+      </label>
+      <hr />
+      <button onClick={saveChanges}>Save Changes</button>
+      <button onClick={resetValues}>Reset Values</button>
+      <button onClick={logOut}>Log Out</button>
+    </div>
+  );
 }

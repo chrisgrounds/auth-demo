@@ -8,4 +8,4 @@ npm run start # in ./front-end
 
 
 
-![alt text](https://github.com/chrisgrounds/auth-demo/screenshot.png)
+![alt text](https://github.com/chrisgrounds/auth-demo/blob/main/screenshot.png)
